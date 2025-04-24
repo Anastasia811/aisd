@@ -1,0 +1,71 @@
+#Лабораторная работа №1
+#Написать программу, которая читая символы из бесконечной последовательности (эмулируется конечным файлом, читающимся поблочно), распознает, преобразует и выводит на экран лексемы по определенному правилу. Лексемы разделены пробелами. Преобразование делать по возможности через словарь. Для упрощения под выводом числа прописью подразумевается последовательный вывод всех цифр числа. Регулярные выражения использовать нельзя.
+#Нечетные восьмеричные числа, не превышающие 409610, у которых вторая справа цифра равна 7. Выводит на экран цифры числа, исключая семерки. Вычисляется среднее число между минимальным и максимальным и выводится прописью.
+def number_to_words(n):
+    units = ["", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"]
+    tens = ["", "десять", "двадцать", "тридцать", "сорок", "пятьдесят", "шестьдесят", "семьдесят", "восемьдесят",
+            "девяносто"]
+    hundreds = ["", "сто", "двести", "триста", "четыреста", "пятьсот", "шестьсот", "семьсот", "восемьсот", "девятьсот"]
+
+    if n == 0:
+        return "ноль"
+
+    words = []
+    if n >= 1000:
+        words.append("тысяча")
+        n -= 1000
+    if n >= 100:
+        words.append(hundreds[n // 100])
+        n %= 100
+    if n >= 20:
+        words.append(tens[n // 10])
+        n %= 10
+    if n > 0:
+        words.append(units[n])
+
+    return ' '.join(words).strip()
+
+
+def is_valid_octal(num_str):
+    if len(num_str) < 2 or not num_str.isdigit():
+        return False
+    if num_str[-1] in '02468':
+        return False
+    if int(num_str, 8) > 4096:
+        return False
+    return num_str[-2] == '7'
+
+
+def process_input(file_path):
+    min_num = None
+    max_num = None
+    results = []
+
+    with open(file_path, 'r') as f:
+        while True:
+            chunk = f.read(1024)
+            if not chunk:
+                break
+            lexemes = chunk.split()
+
+            for lexeme in lexemes:
+                if is_valid_octal(lexeme):
+                    results.append(lexeme)
+
+    filtered_results = []
+    for number in results:
+        filtered_number = number.replace('7', '')
+        if filtered_number:
+            filtered_results.append(int(filtered_number, 8))
+
+    if filtered_results:
+        min_num = min(filtered_results)
+        max_num = max(filtered_results)
+
+    if min_num is not None and max_num is not None:
+        average = (min_num + max_num) // 2
+        average_words = number_to_words(average)
+        print("Числа без семерок:", [num for num in filtered_results])
+        print("Среднее число прописью:", average_words)
+
+process_input('C://Users//user//Desktop//11.txt')
