@@ -6,17 +6,11 @@ def number_to_words(number):
     return ' '.join(digit_words[d] for d in str(number))
 def is_valid_lexeme(word):
     return all(ch in '01234567' for ch in word)
-def to_decimal(oct_str):
-    result = 0
-    for ch in oct_str:
-        result = result * 8 + int(ch)
-    return result
 def process_number(num):
     num_str = str(num)
     if num % 2 != 0 and len(num_str) > 1 and num_str[-2] == '7' and num <= 4096:
         result = ''.join([ch for ch in num_str if ch != '7'])
         return result
-    return None
 with open('C://Users//user//Desktop//11.txt', 'r') as f:
     numbers = f.read().split()
     valid_numbers = []
