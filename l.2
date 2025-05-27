@@ -1,0 +1,18 @@
+import re
+digit_words = {'0': 'ноль', '1': 'один', '2': 'два', '3': 'три', '4': 'четыре', '5': 'пять', '6': 'шесть', '7': 'семь', '8': 'восемь', '9': 'девять'}
+def number_to_words(num):
+    return ' '.join(digit_words[d] for d in str(num))
+with open('C://Users//user//Desktop//11.txt', 'r') as f:
+    text = f.read()
+    nums = re.findall(r'\b[0-7]+\b', text)
+    result_numbers = []
+    for num in nums:
+        n = int(num)
+        if n % 2 == 1 and n <= 4096 and len(num) >= 2 and num[-2] == '7':
+            result_numbers.append(n)
+            print(''.join([d for d in num if d != '7']))
+min_n = min(result_numbers)
+max_n = max(result_numbers)
+avg = (min_n + max_n) // 2
+print(str(number_to_words(avg)).replace('семь',''))
+print(result_numbers)
