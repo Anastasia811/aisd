@@ -34,8 +34,6 @@ if __name__ == "__main__":
     variants_algo = algorithmic(N, K)
     variants_func = using_functions(N, K)
 
-    print("Алгоритмический вариант - количество вариантов:", len(variants_algo))
-    print("Алгоритмический вариант - варианты:", variants_algo)
-    print("Вариант с функциями - количество вариантов:", len(variants_func))
-    print("Вариант с функциями - варианты:", variants_func)
+    print("Количество вариантов:", len(variants_algo))
+    print("Варианты:", variants_algo)
     compare_time(N, K)
