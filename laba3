@@ -1,0 +1,102 @@
+С клавиатуры вводится два числа K и N. Квадратная матрица А(N,N), состоящая из 4-х равных по размерам подматриц, B,C,D,E заполняется случайным образом целыми числами в интервале [-10,10]. Для тестирования использовать не случайное заполнение, а целенаправленное.
+8.	Формируется матрица F следующим образом: если в С количество простых чисел в нечетных столбцах в области 2 больше, чем количество нулевых  элементов в четных строках в области 3, то поменять в С симметрично области 1 и 3 местами, иначе С и В поменять местами несимметрично. При этом матрица А не меняется. После чего вычисляется выражение: ((К*A)*F– (K * AT) . Выводятся по мере формирования А, F и все матричные операции последовательно.
+
+import copy
+def read_matrix (filename): # читает матрицу из файла преобразует в видимый вариант
+    with open (filename, 'r') as file:
+        matrix = [list(map(int, line.split())) for line in file]
+    return matrix
+
+def extract_matrix (matrix, n): # создавать матрицы из размерности н
+    return [row[:n] for row in matrix[:n]]
+
+def print_matrix (m, title):
+    print(f'\n{title}: ')
+    for row in m:
+        print(' '.join(f'{x:4}' for x in row))
+
+def area_1 (i, j, n): #верхняя
+    return i<j and i<(n-1-j)
+
+def area_2 (i, j, n): #правая
+    return i<j and i>(n-1-j)
+
+def area_3 (i, j, n): #нижняя
+    return i>j and i>(n-1-j)
+
+def area_4 (i, j, n): #левая
+    return i>j and i<(n-1-j)
+
+def conclusion1 (matrix,n): # проверяем сколько строк состоящих из одних нулей в чётных столбцах области 2
+    count = 0
+    for i in range(n):
+        cells = [matrix[i][j] for j in range(n) if area_2(i, j, n) and (j%2 == 1)]
+        if cells and all(x == 0 for x in cells):
+            count+=1
+    return count
+
+def conclusion2 (matrix,n): # проверяем сумму положительных элементов в чётных строках в области 4
+    s = 0
+    for i in range(n):
+        if i%2 == 1:
+            for j in range(n):
+                if area_4(i, j, n) and matrix[i][j]>0:
+                    s+=matrix[i][j]
+    return s
+
+def swap_areas1 (matrix, n): # меняем симметрично области 1 и 2 местами
+    for i in range(n):
+        for j in range(n):
+            if area_1(i, j, n):
+                ii,jj = n-1-j,n-1-i
+                matrix[i][j], matrix[ii][jj] = matrix[ii][jj], matrix[i][j]
+
+def swap_areas2 (matrix, n): # меняем несимметрично области 2 и 3
+    swapped = set()
+    for i in range(n):
+        for j in range(n):
+            if area_2(i, j, n):
+                ii,jj = j, n - 1 - i
+                if area_3(ii, jj, n) and (i, j) not in swapped and (ii, jj) not in swapped:
+                    matrix[i][j], matrix[ii][jj] = matrix[ii][jj], matrix[i][j]
+                    swapped.add((i,j)); swapped.add((ii,jj))
+                # изучить методы применения set swap add all copy deepcopy
+def multiplication (a, b):
+    n, m, p = len(a), len(b[0]), len(b)
+    return [[sum(a[i][k]*b[k][j] for k in range (p)) for j in range (m)] for i in range (n)]
+def transposition (a):
+    n = len(a)
+    return [[a[j][i] for j in range (n)] for i in range (n)]
+def s_mul (k, a):
+    return [[k * x for x in row] for row in a]
+k = int(input('k: '))
+n = int(input('n: '))
+
+file_matrix = read_matrix('matrix.txt')
+a = extract_matrix(file_matrix, n)
+print_matrix(a, 'matrix a')
+
+f = copy.deepcopy(a)
+nulls = conclusion1(f, n)
+summ_pos = conclusion2(f, n)
+print(f'\n Строк с одними нулями в четных столбцах в области 2: {nulls}')
+print(f'\n Сумма положительных элементов в четных строках в области 4: {summ_pos}')
+if nulls > summ_pos:
+    swap_areas1(f, n)
+    swap_info = 'Симметричный обмен областей 1 и 2:'
+else:
+    swap_areas2(f, n)
+    swap_info = 'Несимметричный обмен областей 2 и 3:'
+print_matrix(f, 'matrix f')
+print(f'\n {swap_info}')
+
+kf = s_mul(k, f)
+kf_a = multiplication(kf, a)
+print_matrix(kf_a, 'k*f*a')
+
+at = transposition(a)
+k_at = s_mul(k, at)
+print_matrix(k_at, 'k*a^t')
+
+result = [[kf_a[i][j] - k_at[i][j] for j in range (n)] for i in range (n)]
+print_matrix(result, '(k*f)*a - k*a^t')
