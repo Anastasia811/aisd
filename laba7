@@ -1,0 +1,95 @@
+Требуется для своего варианта второй части л.р. №6 (усложненной программы) разработать реализацию с использованием графического интерфейса. Допускается использовать любую графическую библиотеку питона.  
+
+import tkinter as tk
+from tkinter import messagebox
+from tkinter.scrolledtext import ScrolledText
+from itertools import product
+
+def optimized_method(N, K, ratings):
+    best_value = -1
+    best_combinations = []
+
+    for combo in product(range(1, 4), repeat=N):
+        if sum(combo) == K and sum(1 for x in combo if x == 3) <= 2:
+            total_value = sum(combo[i] * ratings[i] for i in range(N))
+            if total_value > best_value:
+                best_value = total_value
+                best_combinations = [combo]
+            elif total_value == best_value:
+                best_combinations.append(combo)
+
+    return best_combinations, best_value
+
+def run_program():
+    try:
+        N = int(entry_n.get())
+        K = int(entry_k.get())
+        ratings = list(map(int, entry_ratings.get().split()))
+
+        if N <= 0 or K <= 0:
+            messagebox.showerror("Ошибка", "N и K должны быть положительными числами")
+            return
+
+        if len(ratings) != N:
+            messagebox.showerror("Ошибка", "Количество рейтингов должно быть равно N")
+            return
+
+        if K < N or K > 3 * N:
+            messagebox.showerror("Ошибка", "Для таких N и K решений не существует")
+            return
+
+        result, best_value = optimized_method(N, K, ratings)
+
+        output.delete("1.0", tk.END)
+        output.insert(tk.END, f"N = {N}\n")
+        output.insert(tk.END, f"K = {K}\n")
+        output.insert(tk.END, f"Рейтинги партий: {ratings}\n")
+        output.insert(tk.END, "Ограничение: не более 2 партий могут дать по 3 человека\n")
+        output.insert(tk.END, "Целевая функция: максимизировать общий рейтинг комиссии\n\n")
+
+        if result:
+            output.insert(tk.END, f"Лучшее значение целевой функции: {best_value}\n")
+            output.insert(tk.END, "Оптимальные варианты:\n")
+            for idx, combo in enumerate(result, 1):
+                output.insert(tk.END, f"{idx}) {combo}\n")
+        else:
+            output.insert(tk.END, "Подходящих вариантов не найдено\n")
+
+    except ValueError:
+        messagebox.showerror("Ошибка", "Введите корректные числовые значения")
+
+root = tk.Tk()
+root.title("Лабораторная работа №7")
+root.geometry("700x500")
+
+label_title = tk.Label(root, text="Оптимизация формирования парламентской комиссии", font=("Arial", 14))
+label_title.pack(pady=10)
+
+frame_input = tk.Frame(root)
+frame_input.pack(pady=10)
+
+label_n = tk.Label(frame_input, text="Количество партий N:")
+label_n.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+entry_n = tk.Entry(frame_input, width=30)
+entry_n.grid(row=0, column=1, padx=5, pady=5)
+entry_n.insert(0, "5")
+
+label_k = tk.Label(frame_input, text="Количество членов комиссии K:")
+label_k.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+entry_k = tk.Entry(frame_input, width=30)
+entry_k.grid(row=1, column=1, padx=5, pady=5)
+entry_k.insert(0, "8")
+
+label_ratings = tk.Label(frame_input, text="Рейтинги партий через пробел:")
+label_ratings.grid(row=2, column=0, sticky="w", padx=5, pady=5)
+entry_ratings = tk.Entry(frame_input, width=30)
+entry_ratings.grid(row=2, column=1, padx=5, pady=5)
+entry_ratings.insert(0, "8 6 7 5 9")
+
+button_run = tk.Button(root, text="Найти оптимальные варианты", command=run_program)
+button_run.pack(pady=10)
+
+output = ScrolledText(root, width=80, height=18)
+output.pack(padx=10, pady=10)
+
+root.mainloop()
