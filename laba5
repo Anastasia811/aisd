@@ -1,0 +1,96 @@
+import timeit
+import matplotlib.pyplot as plt
+
+
+def F_recursive(n):
+    if n < 2:
+        return 1
+
+    if n % 2 == 0:
+        sign = -1 if n % 2 == 1 else 1
+        return sign * (2 * F_recursive(n - 1) + F_recursive(n - 3))
+    else:
+        fact = 1
+        for i in range(1, 2 * n + 1):
+            fact *= i
+
+        return 5 * F_recursive(n - 1) / fact - F_recursive(n - 3)
+
+
+def F_iterative(n):
+    if n < 2:
+        return 1
+
+    f_prev3 = 1   # F(-1)
+    f_prev2 = 1   # F(0)
+    f_prev1 = 1   # F(1)
+
+    fact = 1
+    last_fact_number = 1
+
+    for i in range(2, n + 1):
+        while last_fact_number < 2 * i:
+            last_fact_number += 1
+            fact *= last_fact_number
+
+        if i % 2 == 0:
+            sign = -1 if i % 2 == 1 else 1
+            f_current = sign * (2 * f_prev1 + f_prev3)
+        else:
+            f_current = 5 * f_prev1 / fact - f_prev3
+
+        f_prev3, f_prev2, f_prev1 = f_prev2, f_prev1, f_current
+
+    return f_prev1
+
+
+results = []
+
+for n in range(2, 31):
+    rec_value = F_recursive(n)
+    itr_value = F_iterative(n)
+
+    rec_time = timeit.timeit(lambda: F_recursive(n), number=10)
+    itr_time = timeit.timeit(lambda: F_iterative(n), number=10)
+
+    results.append((n, rec_value, itr_value, rec_time, itr_time))
+
+
+print("Таблица результатов:\n")
+print(f"{'n':<5}{'F recursive':<25}{'F iterative':<25}{'Recursive Time (s)':<22}{'Iterative Time (s)':<22}")
+
+for row in results:
+    print(f"{row[0]:<5}{row[1]:<25.10f}{row[2]:<25.10f}{row[3]:<22.6f}{row[4]:<22.6f}")
+
+
+print("\nСравнение скорости выполнения:\n")
+
+for row in results:
+    print(f"n = {row[0]}")
+    print(f"Recursive: {row[3]:.6f}")
+    print(f"Iterative: {row[4]:.6f}")
+
+    if row[3] < row[4]:
+        print("Метод F_recursive быстрее")
+    elif row[3] > row[4]:
+        print("Метод F_iterative быстрее")
+    else:
+        print("Методы работают одинаково быстро")
+
+    print()
+
+
+x = [row[0] for row in results]
+y1 = [row[3] for row in results]
+y2 = [row[4] for row in results]
+
+plt.figure(figsize=(10, 6))
+plt.plot(x, y1, label='Recursive', color='orange')
+plt.plot(x, y2, label='Iterative', color='red')
+
+plt.xlabel('n')
+plt.ylabel('Time (s)')
+plt.legend()
+plt.title('Сравнение времени выполнения рекурсивного и итеративного подхода')
+plt.grid(True)
+plt.show()
