@@ -23,7 +23,7 @@ def algorithmic_method(N, K):
 def python_method(N, K):
     return [combo for combo in product(range(1, 4), repeat=N) if sum(combo) == K]
 
-N, K = 5, 8
+N, K = 4, 8
 
 print(" Алгоритмический метод ")
 algo_result = algorithmic_method(N, K)
