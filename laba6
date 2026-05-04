@@ -6,13 +6,17 @@ import timeit
 from itertools import product
 
 def algorithmic_method(N, K):
+
     result = []
 
     def generate(current, current_sum, index):
+
         if index == N:
+
             if current_sum == K:
                 result.append(tuple(current))
             return
+
         for x in range(1, 4):
             if current_sum + x + (N - index - 1) <= K <= current_sum + x + 3 * (N - index - 1):
                 generate(current + [x], current_sum + x, index + 1)
@@ -23,113 +27,69 @@ def algorithmic_method(N, K):
 def python_method(N, K):
     return [combo for combo in product(range(1, 4), repeat=N) if sum(combo) == K]
 
-N, K = 4, 8
+N, K = 5, 8
 
 print(" Алгоритмический метод ")
 algo_result = algorithmic_method(N, K)
-for idx, combo in enumerate(algo_result, 1):
-    print(f"{idx}) {combo}")
-print(f"\nВсего возможных комбинаций: {len(algo_result)}")
 
+for idx, combo in enumerate(algo_result, 1):
+
+    print(f"{idx}) {combo}")
+
+print(f"\nВсего возможных комбинаций: {len(algo_result)}")
 print("\nМетод с itertools ")
 py_result = python_method(N, K)
+
 for idx, combo in enumerate(py_result, 1):
     print(f"{idx}) {combo}")
+
 print(f"\nВсего возможных комбинаций: {len(py_result)}")
 
+algo_time = timeit.timeit(lambda: algorithmic_method(N, K), number=1000)
+py_time = timeit.timeit(lambda: python_method(N, K), number=1000)
+
 print("\nСравнение скорости выполнения:")
-print(
-    "Алгоритмический:",
-    timeit.timeit(lambda: algorithmic_method(N, K), number=1000),
-    "itertools:",
-    timeit.timeit(lambda: python_method(N, K), number=1000)
-)
+print(f"Алгоритмический: {algo_time:.5f}")
+print(f"itertools: {py_time:.5f}")
 
-def brute_force_method(N, K, ratings, max_total_cost):
+if algo_time < py_time:
+    print("Метод algorithmic_method быстрее")
+
+elif py_time < algo_time:
+    print("Метод python_method быстрее")
+
+else:
+    print("Методы работают одинаково быстро")
+
+def optimized_method(N, K, ratings):
     best_value = -1
     best_combinations = []
-    checked = 0
-
     for combo in product(range(1, 4), repeat=N):
-        checked += 1
-        if sum(combo) == K:
-            total_cost = sum(combo[i] * ratings[i][1] for i in range(N))
-            total_value = sum(combo[i] * ratings[i][0] for i in range(N))
-            if total_cost <= max_total_cost:
-                if total_value > best_value:
-                    best_value = total_value
-                    best_combinations = [combo]
-                elif total_value == best_value:
-                    best_combinations.append(combo)
+        if sum(combo) == K and sum(1 for x in combo if x == 3) <= 2:
+            total_value = sum(combo[i] * ratings[i] for i in range(N))
+            if total_value > best_value:
+                best_value = total_value
+                best_combinations = [combo]
+            
+            elif total_value == best_value:
+                best_combinations.append(combo)
 
-    return best_combinations, best_value, checked
+    return best_combinations, best_value
 
-def optimized_method(N, K, ratings, max_total_cost):
-    best_value = -1
-    best_combinations = []
-    checked = 0
+ratings = [8, 6, 7, 5, 9]
 
-    max_values = [max(ratings[i][0], ratings[i][0] * 2, ratings[i][0] * 3) for i in range(N)]
+print("\nОптимизация: не более 2 партий могут дать по 3 человека")
 
-    def generate(current, current_sum, current_cost, current_value, index):
-        nonlocal best_value, best_combinations, checked
-
-        if current_cost > max_total_cost:
-            return
-
-        if index == N:
-            checked += 1
-            if current_sum == K:
-                if current_value > best_value:
-                    best_value = current_value
-                    best_combinations = [tuple(current)]
-                elif current_value == best_value:
-                    best_combinations.append(tuple(current))
-            return
-
-        min_possible = current_sum + (N - index)
-        max_possible = current_sum + 3 * (N - index)
-
-        if min_possible > K or max_possible < K:
-            return
-
-        upper_bound = current_value + sum(max_values[index:])
-        if upper_bound < best_value:
-            return
-
-        for x in range(1, 4):
-            if current_sum + x + (N - index - 1) <= K <= current_sum + x + 3 * (N - index - 1):
-                generate(
-                    current + [x],
-                    current_sum + x,
-                    current_cost + x * ratings[index][1],
-                    current_value + x * ratings[index][0],
-                    index + 1
-                )
-
-    generate([], 0, 0, 0, 0)
-    return best_combinations, best_value, checked
-
-ratings = [(8, 3), (6, 2), (7, 4), (5, 2), (9, 5)]
-max_total_cost = 20
-
-print(f"\nОптимизация: суммарная стоимость комиссии не должна превышать {max_total_cost}")
 print("Целевая функция: максимизировать общий рейтинг комиссии")
-print("Формат данных по партиям: (рейтинг 1 человека, стоимость 1 человека)")
-for i, item in enumerate(ratings, 1):
-    print(f"Партия {i}: {item}")
 
-brute_result, brute_value, brute_checked = brute_force_method(N, K, ratings, max_total_cost)
-opt_result, opt_value, opt_checked = optimized_method(N, K, ratings, max_total_cost)
+print("Рейтинг 1 человека по партиям:")
 
-print(f"\nПолный перебор проверил: {brute_checked} вариантов")
-print(f"Лучшее значение целевой функции: {brute_value}")
+for i, value in enumerate(ratings, 1):
+    print(f"Партия {i}: {value}")
+
+opt_result, opt_value = optimized_method(N, K, ratings)
+print(f"\nЛучшее значение целевой функции: {opt_value}")
 print("Оптимальные варианты:")
-for idx, combo in enumerate(brute_result, 1):
-    print(f"{idx}) {combo}")
 
-print(f"\nОптимизированный перебор проверил: {opt_checked} конечных вариантов")
-print(f"Лучшее значение целевой функции: {opt_value}")
-print("Оптимальные варианты:")
 for idx, combo in enumerate(opt_result, 1):
     print(f"{idx}) {combo}")
